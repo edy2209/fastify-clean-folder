@@ -1,6 +1,8 @@
 {
-    "name": "cleancode_library",
+    "name": "cleancode-e",
     "version": "1.0.0",
+    "description": "CLI generator untuk project backend Fastify siap pakai",
+    "keywords": ["fastify", "cli", "generator", "scaffold", "backend", "nodejs"],
     "type": "module",
     "bin": {
         "cleancode-e": "./bin/index.js"
