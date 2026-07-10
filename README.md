@@ -113,7 +113,7 @@ my-api/
 Langsung jalankan:
 ```bash
 cd my-api
-npm start
+npm run dev
 # → http://localhost:3000
 ```
 
@@ -128,7 +128,7 @@ cp .env.example .env
 # atau MongoDB Atlas:
 # MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/my-api
 
-npm start
+npm run dev
 ```
 
 ### 3. MySQL
@@ -145,7 +145,7 @@ cp .env.example .env
 # DB_USER=root
 # DB_PASS=yourpassword
 
-npm start
+npm run dev
 # Sequelize akan auto-sync tabel saat pertama kali jalan
 ```
 
