@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import { connectDB } from './config/db.js';
-import userRoutes from './routes/userRoutes.js';
+import userRoutes from './routes/example.userRoute.js';
 
 const fastify = Fastify({ logger: true });
 

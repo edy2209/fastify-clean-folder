@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import sequelize from './config/db.js';
-import userRoutes from './routes/userRoutes.js';
+import userRoutes from './routes/example.userRoute.js';
 import './models/User.js';
 
 const fastify = Fastify({ logger: true });
