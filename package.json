@@ -1,0 +1,13 @@
+{
+    "name": "cleancode_library",
+    "version": "1.0.0",
+    "type": "module",
+    "bin": {
+        "cleancode-e": "./bin/index.js"
+    },
+    "dependencies": {
+        "@clack/prompts": "^0.7.0",
+        "execa": "^8.0.1",
+        "picocolors": "^1.0.0"
+    }
+}

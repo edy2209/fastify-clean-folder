@@ -1,0 +1,159 @@
+import { intro, outro, text, select, confirm, spinner, note } from "@clack/prompts";
+import { execa } from "execa";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "node:url";
+import colors from "picocolors";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+async function main() {
+    console.clear();
+    intro(colors.bgCyan(colors.black(" cleancode-e CLI Generator ")));
+
+    const projectName = await text({
+        message: "Nama project kamu:",
+        placeholder: "contoh: my-api",
+        validate: (value) => {
+            if (!value) return "Nama project tidak boleh kosong";
+            if (value.includes(" ")) return "Nama project tidak boleh mengandung spasi";
+            if (value.length < 3) return "Nama project minimal 3 karakter";
+            if (/\d/.test(value)) return "Nama project tidak boleh mengandung angka";
+            if (fs.existsSync(value)) return "Folder dengan nama itu sudah ada";
+        },
+    });
+
+    if (typeof projectName === "symbol") {
+        outro(colors.red("Dibatalkan."));
+        process.exit(0);
+    }
+
+    const database = await select({
+        message: "Pilih database:",
+        options: [
+            { value: "none", label: "Tidak pakai database (in-memory)" },
+            { value: "mongo", label: "MongoDB (Mongoose)" },
+            { value: "mysql", label: "MySQL (Sequelize + mysql2)" },
+        ],
+    });
+
+    if (typeof database === "symbol") {
+        outro(colors.red("Dibatalkan."));
+        process.exit(0);
+    }
+
+    const useNodemon = await confirm({
+        message: "Pakai nodemon untuk auto-reload saat development?",
+        initialValue: true,
+    });
+
+    if (typeof useNodemon === "symbol") {
+        outro(colors.red("Dibatalkan."));
+        process.exit(0);
+    }
+
+    const targetDir = path.resolve(projectName);
+    const templateDir = path.join(__dirname, "templates");
+
+    const s = spinner();
+    s.start("Menyiapkan struktur project...");
+
+    try {
+        const dirs = ["routes", "controllers", "models", "config", "plugins", "middleware"];
+        for (const dir of dirs) {
+            fs.mkdirSync(path.join(targetDir, dir), { recursive: true });
+        }
+
+        const from = (src) => path.join(templateDir, src);
+        const to = (dest) => path.join(targetDir, dest);
+        const cp = (src, dest) => fs.copyFileSync(from(src), to(dest));
+
+        cp(`app.${database}.js`, "app.js");
+        cp(".env.example", ".env.example");
+
+        cp("routes/example.userRoute.js", "routes/example.userRoute.js");
+        cp("routes/readme.txt", "routes/readme.txt");
+        cp("controllers/readme.txt", "controllers/readme.txt");
+        cp("models/readme.txt", "models/readme.txt");
+        cp("config/readme.txt", "config/readme.txt");
+        cp("plugins/readme.txt", "plugins/readme.txt");
+        cp("plugins/example.corsPlugin.js", "plugins/example.corsPlugin.js");
+        cp("middleware/readme.txt", "middleware/readme.txt");
+        cp("middleware/example.authMiddleware.js", "middleware/example.authMiddleware.js");
+
+        if (database === "mongo") {
+            cp("config/db.mongo.js", "config/db.js");
+            cp("models/example.userModel.mongo.js", "models/example.userModel.js");
+            cp("controllers/example.userController.mongo.js", "controllers/example.userController.js");
+        } else if (database === "mysql") {
+            cp("config/db.mysql.js", "config/db.js");
+            cp("models/example.userModel.mysql.js", "models/example.userModel.js");
+            cp("controllers/example.userController.mysql.js", "controllers/example.userController.js");
+        } else {
+            cp("controllers/example.userController.none.js", "controllers/example.userController.js");
+        }
+
+        const deps = { fastify: "latest" };
+        if (database === "mongo") deps.mongoose = "latest";
+        if (database === "mysql") {
+            deps.sequelize = "latest";
+            deps.mysql2 = "latest";
+        }
+
+        fs.writeFileSync(
+            to("package.json"),
+            JSON.stringify({
+                name: projectName,
+                version: "1.0.0",
+                type: "module",
+                main: "app.js",
+                scripts: {
+                    start: "node app.js",
+                    dev: useNodemon ? "nodemon app.js" : "node --watch app.js",
+                },
+                dependencies: deps,
+            }, null, 2)
+        );
+
+        s.stop("Struktur project berhasil dibuat!");
+
+        const installSpinner = spinner();
+        installSpinner.start("Menginstall dependencies (ini mungkin memakan waktu >_<)...");
+
+        const installList = ["fastify"];
+        if (database === "mongo") installList.push("mongoose");
+        if (database === "mysql") installList.push("sequelize", "mysql2");
+
+        await execa("npm", ["install", ...installList], { cwd: targetDir });
+
+        if (useNodemon) {
+            await execa("npm", ["install", "--save-dev", "nodemon"], { cwd: targetDir });
+        }
+
+        installSpinner.stop("Dependencies berhasil diinstall!");
+
+        note(
+            [
+                `Project berhasil dibuat di: ${colors.cyan(targetDir)}`,
+                "",
+                `  cd ${projectName}`,
+                `  npm start`,
+                "",
+                database !== "none"
+                    ? `Isi ${colors.yellow(".env.example")} lalu rename jadi ${colors.yellow(".env")}`
+                    : "",
+            ].filter(Boolean).join("\n"),
+            "Selesai!"
+        );
+
+        outro(colors.green("folder berhasil dibuat, Selamat berkarya! masbro 🚀"));
+    } catch (err) {
+        s.stop(colors.red("Terjadi kesalahan!"));
+        console.error(err);
+        outro(colors.red("Proses pembuatan project gagal."));
+        process.exit(1);
+    }
+}
+
+main();
