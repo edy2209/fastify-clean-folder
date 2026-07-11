@@ -4,6 +4,8 @@ import userRoutes from './routes/example.userRoute.js';
 const fastify = Fastify({ logger: true });
 
 fastify.register(userRoutes);
+// ====== DOKUMENTASI API ======
+// {{DOCS_SETUP}}
 
 const start = async () => {
     try {

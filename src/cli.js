@@ -53,6 +53,19 @@ async function main() {
         process.exit(0);
     }
 
+    const dokumentasi = await select({
+        message: "pilih dokumentasi",
+        options: [
+            { value: "swagger", label: "Swagger" },
+            { value: "scaler", label: "scaler" },
+        ],
+    })
+
+    if (typeof dokumentasi === "symbol") {
+        outro(colors.red("Dibatalkan."));
+        process.exit(0);
+    }
+
     const targetDir = path.resolve(projectName);
     const templateDir = path.join(__dirname, "templates");
 
@@ -88,11 +101,71 @@ async function main() {
             cp("controllers/example.userController.mongo.js", "controllers/example.userController.js");
         } else if (database === "mysql") {
             cp("config/db.mysql.js", "config/db.js");
-            cp("models/example.userModel.mysql.js", "models/example.userModel.js");
+            cp("models/example.userModel.mysql.js", "models/User.js");
             cp("controllers/example.userController.mysql.js", "controllers/example.userController.js");
         } else {
             cp("controllers/example.userController.none.js", "controllers/example.userController.js");
         }
+
+        //ambil isi file app.js yang sudah di buat
+        const appJsPath = to("app.js");
+        let appJsContent = fs.readFileSync(appJsPath, "utf-8");
+
+        //--mempersiapkan Script DOKUMENTASI
+
+        let docsScript = "";
+
+        if (dokumentasi === "swagger") {
+            docsScript = `
+            //--DOKUMENTASI SWAGGER--
+            fastify.register(import("@fastify/swagger"), {
+                openapi: {
+                    info: {
+                        title: "${projectName}",  // <-- Jangan lupa pakai tanda kutip untuk string!
+                        description: "API Documentation",
+                        version: "1.0.0",
+                    },
+                    servers: [
+                        {
+                            url: "http://localhost:3000",
+                            description: "Development",
+                        },
+                    ],
+                },
+            });
+            fastify.register(import("@fastify/swagger-ui"), {
+                routePrefix: "/docs",
+            });
+            `
+        } else if (dokumentasi === "scaler") {
+            docsScript = `
+            //--DOKUMENTASI SCALER--
+            fastify.register(import("@fastify/swagger"), {
+                openapi: {
+                    info: {
+                        title: "${projectName}",
+                        description: "API Documentation",
+                        version: "1.0.0",
+                    },
+                    servers: [
+                        {
+                            url: "http://localhost:3000",
+                            description: "Development",
+                        },
+                    ],
+                },
+            });
+            fastify.register(import("@scalar/fastify-api-reference"), {
+                routePrefix: "/docs",
+            });
+            `
+        }
+
+
+        //--ganti penanda {{DOCS_SETUP}}
+        appJsContent = appJsContent.replace("{{DOCS_SETUP}}", docsScript);
+
+        fs.writeFileSync(appJsPath, appJsContent);
 
         const deps = { fastify: "latest" };
         if (database === "mongo") deps.mongoose = "latest";
@@ -124,6 +197,8 @@ async function main() {
         const installList = ["fastify"];
         if (database === "mongo") installList.push("mongoose");
         if (database === "mysql") installList.push("sequelize", "mysql2");
+        if (dokumentasi === "swagger") installList.push("@fastify/swagger", "@fastify/swagger-ui");
+        if (dokumentasi === "scaler") installList.push("@fastify/swagger", "@scalar/fastify-api-reference");
 
         await execa("npm", ["install", ...installList], { cwd: targetDir });
 
@@ -145,6 +220,7 @@ async function main() {
                     : "",
             ].filter(Boolean).join("\n"),
             "Selesai!"
+
         );
 
         outro(colors.green("folder berhasil dibuat, Selamat berkarya! masbro 🚀"));

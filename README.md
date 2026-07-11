@@ -14,7 +14,7 @@
 
 ## Apa itu cleancode-e?
 
-`cleancode-e` adalah CLI generator yang men-scaffold project backend [Fastify](https://fastify.dev) secara interaktif — lengkap dengan struktur folder siap produksi, pilihan database (MongoDB / MySQL / tanpa database), dan auto-install dependency.
+`cleancode-e` adalah CLI generator yang men-scaffold project backend [Fastify](https://fastify.dev) secara interaktif — lengkap dengan struktur folder siap produksi, pilihan database (MongoDB / MySQL / tanpa database), pilihan dokumentasi API (Swagger UI / Scalar), dan auto-install dependency.
 
 Terinspirasi dari Artisan (Laravel) dan Create-React-App, tapi untuk ekosistem **Node.js + Fastify**.
 
@@ -56,6 +56,10 @@ Ikuti prompt interaktifnya:
 ◇  Pakai nodemon untuk auto-reload saat development?
 │  ● Ya  ○ Tidak
 │
+◇  Pilih dokumentasi API:
+│  ● Swagger UI  (akses via /docs)
+│  ○ Scalar      (akses via /docs — tampilan modern)
+│
 └  folder berhasil dibuat, Selamat berkarya! masbro 🚀
 ```
 
@@ -78,7 +82,7 @@ my-api/
 │   └── readme.txt
 │
 ├── models/
-│   ├── example.userModel.js        # Skema User (Mongoose / Sequelize)
+│   ├── User.js / example.userModel.js  # Skema User (Mongoose / Sequelize)
 │   └── readme.txt
 │
 ├── config/
@@ -104,6 +108,8 @@ my-api/
 | MongoDB | + `mongoose` |
 | MySQL | + `sequelize`, `mysql2` |
 | Nodemon (jika Ya) | `nodemon` (devDependency) |
+| Swagger UI | + `@fastify/swagger`, `@fastify/swagger-ui` |
+| Scalar | + `@fastify/swagger`, `@scalar/fastify-api-reference` |
 
 ---
 
@@ -148,6 +154,19 @@ cp .env.example .env
 npm run dev
 # Sequelize akan auto-sync tabel saat pertama kali jalan
 ```
+
+---
+
+## Dokumentasi API
+
+Setelah server berjalan, buka browser dan akses:
+
+| Pilihan | URL |
+|---|---|
+| Swagger UI | `http://localhost:3000/docs` |
+| Scalar | `http://localhost:3000/docs` |
+
+> Scalar menampilkan UI yang lebih modern & estetis dengan dark mode bawaan, cocok untuk project yang ingin tampilan API Reference premium.
 
 ---
 
