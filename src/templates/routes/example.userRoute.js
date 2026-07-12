@@ -1,4 +1,4 @@
-import { getUsers, createUser } from '../controllers/example.userController.js';
+import { getUsers, createUser } from '../controllers/userController.js';
 
 export default async function userRoutes(fastify) {
     fastify.get('/users', getUsers);

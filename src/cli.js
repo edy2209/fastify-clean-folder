@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 async function main() {
     console.clear();
-    intro(colors.bgCyan(colors.black(" cleancode-e CLI Generator ")));
+    intro(colors.bgCyan(colors.black(" cleancode-e CLI Generator Created by EdySf ")));
 
     const projectName = await text({
         message: "Nama project kamu:",
@@ -85,26 +85,26 @@ async function main() {
         cp(`app.${database}.js`, "app.js");
         cp(".env.example", ".env.example");
 
-        cp("routes/example.userRoute.js", "routes/example.userRoute.js");
+        cp("routes/example.userRoute.js", "routes/userRoute.js");
         cp("routes/readme.txt", "routes/readme.txt");
         cp("controllers/readme.txt", "controllers/readme.txt");
         cp("models/readme.txt", "models/readme.txt");
         cp("config/readme.txt", "config/readme.txt");
         cp("plugins/readme.txt", "plugins/readme.txt");
-        cp("plugins/example.corsPlugin.js", "plugins/example.corsPlugin.js");
+        cp("plugins/example.corsPlugin.js", "plugins/corsPlugin.js");
         cp("middleware/readme.txt", "middleware/readme.txt");
-        cp("middleware/example.authMiddleware.js", "middleware/example.authMiddleware.js");
+        cp("middleware/example.authMiddleware.js", "middleware/authMiddleware.js");
 
         if (database === "mongo") {
             cp("config/db.mongo.js", "config/db.js");
-            cp("models/example.userModel.mongo.js", "models/example.userModel.js");
-            cp("controllers/example.userController.mongo.js", "controllers/example.userController.js");
+            cp("models/example.userModel.mongo.js", "models/userModel.js");
+            cp("controllers/example.userController.mongo.js", "controllers/userController.js");
         } else if (database === "mysql") {
             cp("config/db.mysql.js", "config/db.js");
             cp("models/example.userModel.mysql.js", "models/User.js");
-            cp("controllers/example.userController.mysql.js", "controllers/example.userController.js");
+            cp("controllers/example.userController.mysql.js", "controllers/userController.js");
         } else {
-            cp("controllers/example.userController.none.js", "controllers/example.userController.js");
+            cp("controllers/example.userController.none.js", "controllers/userController.js");
         }
 
         //ambil isi file app.js yang sudah di buat
@@ -215,6 +215,9 @@ async function main() {
                 `  cd ${projectName}`,
                 `  npm start`,
                 "",
+                `Created by @edy_syafrianto`,
+                `https://github.com/edy2209`,
+                `version 1.2.1`,
                 database !== "none"
                     ? `Isi ${colors.yellow(".env.example")} lalu rename jadi ${colors.yellow(".env")}`
                     : "",

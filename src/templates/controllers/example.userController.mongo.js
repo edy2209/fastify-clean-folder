@@ -1,4 +1,4 @@
-import User from '../models/example.userModel.js';
+import User from '../models/userModel.js';
 
 export async function getUsers(request, reply) {
     const users = await User.find();
