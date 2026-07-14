@@ -9,6 +9,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function main() {
+    // Intercept make:resource command
+    if (process.argv[2] === "make:resource") {
+        const resourceName = process.argv[3];
+        if (!resourceName) {
+            console.error(colors.red("❌ Error: Harap berikan nama resource!"));
+            console.log(colors.yellow("Sintaks: npx cleancode-e make:resource <nama-resource>"));
+            process.exit(1);
+        }
+        const { generateResource } = await import("./resource/kode-eksekusi.js");
+        await generateResource(resourceName);
+        process.exit(0);
+    }
+
     console.clear();
     intro(colors.bgCyan(colors.black(" cleancode-e CLI Generator Created by EdySf ")));
 
