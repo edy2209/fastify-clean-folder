@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import colors from 'picocolors';
+import { select } from '@clack/prompts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -12,17 +13,14 @@ export async function generateResource(rawName) {
         process.exit(1);
     }
 
-    // Standardize casing: First letter capitalized (e.g. "User")
     const capitalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
     const lowercaseName = rawName.toLowerCase();
 
-    // Define target directories
     const targetDir = process.cwd();
     const modelsDir = path.join(targetDir, 'models');
     const controllersDir = path.join(targetDir, 'controllers');
     const routesDir = path.join(targetDir, 'routes');
 
-    // Check if we are inside a project (or check if directories exist/create them)
     if (!fs.existsSync(modelsDir) || !fs.existsSync(controllersDir) || !fs.existsSync(routesDir)) {
         console.log(colors.yellow('⚠️ Target directories (models/, controllers/, routes/) not fully found. Creating them...'));
         fs.mkdirSync(modelsDir, { recursive: true });
@@ -30,12 +28,10 @@ export async function generateResource(rawName) {
         fs.mkdirSync(routesDir, { recursive: true });
     }
 
-    // Template paths
     const templateModelPath = path.join(__dirname, 'comands', 'make-model.js');
     const templateControllerPath = path.join(__dirname, 'comands', 'make-controller.js');
     const templateRoutesPath = path.join(__dirname, 'comands', 'make-routes.js');
 
-    // Verify templates exist
     if (!fs.existsSync(templateModelPath) || !fs.existsSync(templateControllerPath) || !fs.existsSync(templateRoutesPath)) {
         console.error(colors.red('❌ Error: Resource templates not found inside the cli generator!'));
         process.exit(1);
@@ -75,3 +71,55 @@ export async function generateResource(rawName) {
         console.error(colors.red('❌ Failed to generate resource:'), error);
     }
 }
+
+export async function generateDocker(rawName) {
+    if (!rawName) {
+        console.error(colors.red('❌ Error: Name of the resource is required!'));
+        process.exit(1);
+    }
+
+    const capitalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+    const lowercaseName = rawName.toLowerCase();
+
+    const targetDir = process.cwd();
+    const dockerDir = path.join(targetDir, '');
+
+    const dbType = await select({
+        message: 'Pilih database:',
+        options: [
+            { value: 'none', label: 'Tidak pakai database (in-memory)' },
+            { value: 'mongo', label: 'MongoDB (Mongoose)' },
+            { value: 'mysql', label: 'MySQL (Sequelize + mysql2)' },
+        ],
+    });
+    if (typeof dbType === 'symbol') {
+        console.log(colors.red('❌ Error: Database type is required!'));
+        process.exit(0);
+    }
+
+    const templateDockerfile = path.join(__dirname, 'comands', 'Dockerfile');
+    const templateComposeSelectedPath = path.join(__dirname, 'comands', `docker-compose.${dbType}.yml`);
+
+    //validasi apakah file template aslinya ada
+    if (!fs.existsSync(templateDockerfile) || !fs.existsSync(templateComposeSelectedPath)) {
+        console.error(colors.red('❌ Error: File template Docker tidak ditemukan di CLI generator!'));
+        process.exit(1);
+    }
+    console.log(colors.cyan(`\n🏗️  Generating docker files for: ${colors.bold(capitalizedName)} using ${colors.bold(dbType)}...`));
+
+    try {
+        let dockerfileContent = fs.readFileSync(templateDockerfile, 'utf8');
+        fs.writeFileSync(path.join(dockerDir, 'Dockerfile'), dockerfileContent, 'utf8');
+        console.log(colors.green(`   ✔ Created Dockerfile      : Dockerfile`));
+        let composeContent = fs.readFileSync(templateComposeSelectedPath, 'utf8');
+
+        fs.writeFileSync(path.join(dockerDir, 'docker-compose.yml'), composeContent, 'utf8');
+        console.log(colors.green(`   ✔ Created Docker Compose  : docker-compose.yml`));
+        console.log(colors.green(`\n✨ Docker files successfully generated!`));
+        console.log(colors.yellow('💡 Untuk menjalankan:'));
+        console.log(colors.gray('   docker-compose up --build'));
+    } catch (error) {
+        console.error(colors.red('❌ Failed to generate docker files:'), error);
+    }
+} 
+

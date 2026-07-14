@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function main() {
-    // Intercept make:resource command
+    // perintah untuk membuat resource
     if (process.argv[2] === "make:resource") {
         const resourceName = process.argv[3];
         if (!resourceName) {
@@ -19,6 +19,18 @@ async function main() {
         }
         const { generateResource } = await import("./resource/kode-eksekusi.js");
         await generateResource(resourceName);
+        process.exit(0);
+    }
+    // perintah untuk membuat docker
+    if (process.argv[2] === "make:docker") {
+        const dockerName = process.argv[3];
+        if (!dockerName) {
+            console.error(colors.red("❌ Error: Harap berikan nama docker!"));
+            console.log(colors.yellow("Sintaks: npx cleancode-e make:docker <nama-docker>"));
+            process.exit(1);
+        }
+        const { generateDocker } = await import("./resource/kode-eksekusi.js");
+        await generateDocker(dockerName);
         process.exit(0);
     }
 

@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+    app:
+        build:
+            context:
+            ports:
+                - "3000:3000"
+            environment:
+                - PORT=3000
+                - DB_HOST=mysql
+                - DB_USER=root
+                - DB_PASS=password
+                - DB_NAME=db_cleancode
+                - DB_PORT=3306
+            depends_on:
+                - mysql
+    db:
+        image: mysql:8.0
+        ports:
+            - "3306:3306"
+        environment:
+            - MYSQL_ROOT_PASSWORD=password
+            - MYSQL_DATABASE=db_cleancode
+        volumes:
+            - mysql_data:/var/lib/mysql
+volumes:
+    mysql_data: 
