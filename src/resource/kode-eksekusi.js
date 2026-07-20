@@ -7,6 +7,22 @@ import { select } from '@clack/prompts';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Helper untuk mencari root directory project (yang berisi package.json) secara rekursif ke atas
+function findProjectRoot(startDir) {
+    let currentDir = startDir;
+    while (currentDir) {
+        if (fs.existsSync(path.join(currentDir, 'package.json'))) {
+            return currentDir;
+        }
+        const parentDir = path.dirname(currentDir);
+        if (parentDir === currentDir) {
+            break; // Mentok di root filesystem
+        }
+        currentDir = parentDir;
+    }
+    return null;
+}
+
 export async function generateResource(rawName) {
     if (!rawName) {
         console.error(colors.red('❌ Error: Name of the resource is required!'));
@@ -16,7 +32,15 @@ export async function generateResource(rawName) {
     const capitalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
     const lowercaseName = rawName.toLowerCase();
 
-    const targetDir = process.cwd();
+    // Cari project root
+    const projectRoot = findProjectRoot(process.cwd());
+    const targetDir = projectRoot || process.cwd();
+
+    if (!projectRoot) {
+        console.log(colors.yellow('⚠️ Warning: File package.json tidak ditemukan di direktori aktif Anda atau parent-nya.'));
+        console.log(colors.yellow('Membuat resource di folder saat ini...'));
+    }
+
     const modelsDir = path.join(targetDir, 'models');
     const controllersDir = path.join(targetDir, 'controllers');
     const routesDir = path.join(targetDir, 'routes');
@@ -74,14 +98,15 @@ export async function generateResource(rawName) {
 
 export async function generateDocker(rawName) {
     if (!rawName) {
-        console.error(colors.red('❌ Error: Name of the resource is required!'));
+        console.error(colors.red('❌ Error: Harap berikan nama docker!'));
         process.exit(1);
     }
 
     const capitalizedName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-    const lowercaseName = rawName.toLowerCase();
-
-    const targetDir = process.cwd();
+    
+    // Cari project root
+    const projectRoot = findProjectRoot(process.cwd());
+    const targetDir = projectRoot || process.cwd();
     const dockerDir = path.join(targetDir, '');
 
     const dbType = await select({
@@ -121,5 +146,4 @@ export async function generateDocker(rawName) {
     } catch (error) {
         console.error(colors.red('❌ Failed to generate docker files:'), error);
     }
-} 
-
+}
